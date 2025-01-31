@@ -1,0 +1,11 @@
+C :\ Users \ utsav . choudhury \ PycharmProjects \ CS_PROJECT \. venv \ Scripts \ python . exe
+C :\ Users \ utsav . choudhury \ PycharmProjects \ CS_PROJECT \ CS_PROJECT_COPY . py
+2 Enter a filename for your report
+3 No file extension needed . However , please note that if a file with this name
+already exists , it will be overwritten : test
+4 Enter ’CUSTOM ’ for a custom sequence or ’RANDOM ’ for a random sequence : custom
+5 Enter your custom DNA sequence (A , C , G , T ) . Length must be 9 -30 and divisible by
+3: AGTCCCTCT
+6 Process completed . Check test . txt for information .
+7
+8 Process finished with exit code 0
