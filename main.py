@@ -1,4 +1,3 @@
-
 # importing the libraries needed for the project. The "from" simply imports a smaller piece of a larger library.
 import random
 from datetime import date
