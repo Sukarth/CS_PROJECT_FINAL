@@ -2,4 +2,5 @@
 
 This is a GitHub repository for my LCOM.e project.
 
-Further documentation is available in the pdf file.
+Further documentation is available in 'Documentation.pdf'.
+
