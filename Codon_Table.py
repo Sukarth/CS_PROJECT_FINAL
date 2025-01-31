@@ -1,6 +1,7 @@
 # Creating a dictionary, so that it is easy to access different amino acids.
 # E.g. "Phe" and "Leu" from RNA sequences like "UUU" and "UUA.
 # This simply maps different keys and values together, for easy access.
+# Now, I can access e.g. "UUU" and then receive the value "Phe" with ease.
 
 RNA_CODON_TABLE = {
     "UUU": "Phe", "UUC": "Phe",
