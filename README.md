@@ -1,4 +1,5 @@
-# CS_PROJECT_FINAL: UTSAV CHOUDHURY L24i
+# CS_PROJECT_FINAL: 
+UTSAV CHOUDHURY L24i
 
 This is a GitHub repository for my LCOM.e project.
 
