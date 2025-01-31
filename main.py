@@ -1,3 +1,4 @@
+
 # importing the libraries needed for the project. The "from" simply imports a smaller piece of a larger library.
 import random
 from datetime import date
@@ -109,9 +110,9 @@ def convert_to_codons(sequence):
 def get_file_names():
     """
     Takes input regarding the names of the files in which to store data.
-    :return: The names of the files in a tuple (text, png)
+    :return: The name of the file
     """
-    # Prompts the user for filenames for the report and PNG image.
+    # Prompts the user for report filename
     while True:
         # Asks the user for a filename for the report file.
         # Ensures the input is not empty and warns about overwriting existing files.
@@ -153,7 +154,7 @@ def process_user_input(text_file_name):
         # Also uses user input for the length of the random sequence.
         input_sequence = generate_random_sequence()
         # Writes the randomly generated sequence to the report.
-        write_to_report(f'RANDOM BASE ARRANGEMENT: {input_sequence[0]}\n\n', text_file_name)
+        write_to_report(f'BASE ARRANGEMENT: {input_sequence[0]}\n\n', text_file_name)
     else:
         # If the user provides their own valid sequence, uses it as is.
         input_sequence = user_choice
@@ -230,7 +231,7 @@ def finalize_report(text_file_name):
 
 def print_completion_message(text_file_name):
     """
-    Prints completion messages indicating report and image file locations.
+    Prints completion messages.
 
     :param: text_file_name (str): Name of the text report file
     """
@@ -238,7 +239,7 @@ def print_completion_message(text_file_name):
 
 
 def main():
-    text_file_name, png_file_name = get_file_names() # Gets the file names and stores them in different variables.
+    text_file_name = get_file_names() # Gets the file names and stores them in different variables.
     initialize_report(text_file_name) # Adds some basic information into the report.
     input_sequence = process_user_input(text_file_name) # Gets the RNA and DNA sequences and writes them into the report.
     codons = process_rna_sequence(input_sequence, text_file_name) # Returns codons and writes them into text file.
@@ -246,10 +247,10 @@ def main():
     # Returns the translated list from the codons and writes them into the text document.
     final_chain = create_and_write_final_chain(translated_list_processed, text_file_name)
     # Creates the final chain and writes it into a text document.
-    # Fetches compound info and writes it in the text document if possible. Also creates png if possible.
+    # Fetches compound info and writes it in the text document if possible.
     finalize_report(text_file_name)
     # Adds finishing touches to the report.
-    print_completion_message(text_file_name, png_file_name)
+    print_completion_message(text_file_name)
     # Alerts user of completed process.
 
 if __name__ == "__main__":  # Ensures that the script’s main logic runs only when the script is executed directly.
