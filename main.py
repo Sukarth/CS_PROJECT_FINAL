@@ -28,10 +28,12 @@ def validate_custom_sequence():
     :return: Valid DNA and RNA sequences.
     """
     base_transcription = {'A': 'U', 'C': 'G', 'G': 'C', 'T': 'A'}  # Mapping of DNA to RNA bases with a dictionary.
-    # This makes it easy to access a value from another, e,g accessing U from A.
+    # This makes it easy to access a value from another, e.g. accessing U from A.
     while True:
         user_input = input(
             "Enter your custom DNA sequence (A, C, G, T). Length must be 9-30 and divisible by 3: ").upper()
+            # Upper() is used so that we do not run into issues in matching lowercase strings with uppercase.
+            # Hence, everything is converted to uppercase.
         if 9 <= len(user_input) <= 30 and len(user_input) % 3 == 0:
             if all(base in "ACGT" for base in user_input):
                 # The all() function takes in one parameter, an iterable, and returns a boolean value (True or False).
@@ -41,8 +43,10 @@ def validate_custom_sequence():
                 # If the value comes back as "False", the loop will continue.
                 rna_sequence = "".join(base_transcription[base] for base in user_input)
                 # Transcripts to RNA with the dictionary defined in the function.
+                # Uses a list comprehension and accesses values in the dictionary together in order to create a transcripted list for use.
+                # [base] will access the key in base_transcription for a certain base, and add that to the list through the comprehension.
                 return user_input, rna_sequence  # Returns both DNA and RNA in a tuple.
-        print("Invalid input. Please follow the criteria.")
+        print("Invalid input. Please follow the criteria.") # Line for error handling.
 
 
 def get_sequence_input():
@@ -53,6 +57,7 @@ def get_sequence_input():
     """
     while True:
         choice = input("Enter 'CUSTOM' for a custom sequence or 'RANDOM' for a random sequence: ").upper()
+        # Upper() is used in order to handle uppercase/lowercase input issues. Everything is made uppercase for simplicity.
         if choice == "CUSTOM":
             return validate_custom_sequence()  # If CUSTOM is chosen, validates the input.
         elif choice == "RANDOM":
@@ -74,19 +79,23 @@ def generate_random_sequence():
             sequence_length = int(input("Enter a length (9-30, divisible by 3) for the random sequence: "))
             # Converts the string to an integer. If the string is made up of text, it will throw a ValueError.
             # We deliberately try to trigger a ValueError with int() so that we can deal with it in the ValueError block.
-            if 9 <= sequence_length <= 30 and sequence_length % 3 == 0:
+            # A ValueError is triggered when a there is improper conversion of classes, e.g. we try to convert a string an integer.
+            if 9 <= sequence_length <= 30 and sequence_length % 3 == 0: # Conditions
                 break
             else:
                 print("Length must be between 9-30 and divisible by 3.")
         except ValueError:
             # Triggered in the case of a ValueError e.g. "Hello" was inputted instead of "9".
-            # "Hello" can obviously not be converted to an integer like we tried to do in line 67.
+            # "Hello" can obviously not be converted to an integer.
             # Important as we can address the error without it crashing the program.
             print("Invalid input. Please enter a valid number.")
     dna_sequence = "".join(random.choice("ACGT") for _ in range(sequence_length))  # Forms the DNA sequence.
     # random.choice() is randomly choosing between characters in the "ACGT" expression.
     # It does this 'n' times, where 'n' is the length of the sequence.
     rna_sequence = "".join(base_transcription[base] for base in dna_sequence)  # Transcribes to RNA.
+    # Transcripts to RNA with the dictionary defined in the function.
+    # Uses a list comprehension and accesses values in the dictionary together in order to create a transcripted list for use.
+    # [base] will access the key in base_transcription for a certain base, and add that to the list through the comprehension.
     return dna_sequence, rna_sequence  # Returns both values as a tuple.
 
 
@@ -195,7 +204,9 @@ def translate_and_process_codons(codons, text_file_name):
     # At this stage, "STOP" and "Uknown" are unlikely to exist; however, this filtering condition is just for safety.
     # "STOP" would be for "STOP" codons.
     translated_list_processed = [AA for AA in translated_sequence if AA not in {"Unknown", "STOP"}]
+    # Makes a list of the translated list; it adds animo acids with a list comprehenstion, provided that they are not "Unknown" or "STOP".
     write_to_report(f'Amino Acids: {translated_list_processed}\n\n', text_file_name)
+    ## \n\n will provide two lines of spaces.
     return translated_list_processed
 
 
@@ -212,6 +223,7 @@ def create_and_write_final_chain(translated_list_processed, text_file_name):
     final_chain = "-".join(translated_list_processed)
     # Writes the final protein chain to the report.
     write_to_report(f'FINAL CHAIN: {final_chain}\n\n', text_file_name)
+    ## \n\n will provide two lines of spaces.
     return final_chain
 
 
@@ -224,8 +236,10 @@ def finalize_report(text_file_name):
     # Adds a disclaimer to the report about the accuracy and context of the results.
     write_to_report('NOTE: NOT A FULLY ACCURATE REPRESENTATION. NOT APPLICABLE TO REAL LIFE CONTEXTS.\n\n',
                     text_file_name)
+    ## \n\n will provide two lines of spaces.
     # Includes author information in the report for attribution.
     write_to_report('UTSAV CHOUDHURY 2025\n\n', text_file_name)
+    ## \n\n will provide two lines of spaces.
 
 
 def print_completion_message(text_file_name):
@@ -244,9 +258,8 @@ def main():
     codons = process_rna_sequence(input_sequence, text_file_name) # Returns codons and writes them into text file.
     translated_list_processed = translate_and_process_codons(codons, text_file_name)
     # Returns the translated list from the codons and writes them into the text document.
-    final_chain = create_and_write_final_chain(translated_list_processed, text_file_name)
+    create_and_write_final_chain(translated_list_processed, text_file_name)
     # Creates the final chain and writes it into a text document.
-    # Fetches compound info and writes it in the text document if possible.
     finalize_report(text_file_name)
     # Adds finishing touches to the report.
     print_completion_message(text_file_name)
