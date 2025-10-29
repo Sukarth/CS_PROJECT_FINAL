@@ -1,269 +1,331 @@
-# importing the libraries needed for the project. The "from" simply imports a smaller piece of a larger library.
-import random
-from datetime import date
+#!/usr/bin/env python3
+"""
+DNA to Protein Translation Tool
 
-# importing the RNA_CODON_TABLE contained in Codon_Table.py. The list is not included in this file, as it is long.
+A bioinformatics tool that converts DNA sequences to protein chains through
+transcription and translation processes.
+
+Author: Sukarth Acharya (Originally by Utsav Choudhury)
+Date: 2025
+Project: LCOM.e
+"""
+
+import random
+import sys
+from datetime import date
+from pathlib import Path
+from typing import List, Tuple, Optional
+
+# Import the RNA codon table
 from Codon_Table import RNA_CODON_TABLE
 
 
-def write_to_report(data, name):
+class DNAProcessor:
     """
-    Utility function to write information into a text file.
-
-    :param: data (str): The data to be written to the file.
-    :param: name (str): The name of the file where the data will be stored (without file extension).
-    :return: None.
+    A class to handle DNA sequence processing and protein translation.
     """
-    with open(f'{name}.txt', 'a') as file:
-        # The 'a' mode is used to append data to the file, preserving previous content.
-        # with() automatically closes the file after execution, conserving system resources.
-        # This is important, as it will be used many times in the program, helping to keep the code clean and conserve resources.
-        file.write(data)
+    
+    def __init__(self):
+        self.base_transcription = {'A': 'U', 'C': 'G', 'G': 'C', 'T': 'A'}
+        self.valid_bases = set('ACGT')
+        self.stop_codons = {'UAA', 'UAG', 'UGA'}
+        self.start_codon = 'AUG'
+    
+    def validate_dna_sequence(self, sequence: str) -> bool:
+        """
+        Validate DNA sequence format and constraints.
+        
+        Args:
+            sequence (str): DNA sequence to validate
+            
+        Returns:
+            bool: True if valid, False otherwise
+        """
+        if not sequence:
+            return False
+        
+        # Check length constraints
+        if not (9 <= len(sequence) <= 30):
+            return False
+        
+        # Check if length is divisible by 3
+        if len(sequence) % 3 != 0:
+            return False
+        
+        # Check if all characters are valid DNA bases
+        return all(base in self.valid_bases for base in sequence.upper())
+    
+    def transcribe_dna_to_rna(self, dna_sequence: str) -> str:
+        """
+        Transcribe DNA sequence to RNA sequence.
+        
+        Args:
+            dna_sequence (str): DNA sequence
+            
+        Returns:
+            str: RNA sequence
+        """
+        return ''.join(self.base_transcription[base] for base in dna_sequence.upper())
+    
+    def convert_to_codons(self, rna_sequence: str) -> List[str]:
+        """
+        Convert RNA sequence to list of codons and add start codon.
+        
+        Args:
+            rna_sequence (str): RNA sequence
+            
+        Returns:
+            List[str]: List of codons with start codon added
+        """
+        codons = [rna_sequence[i:i + 3] for i in range(0, len(rna_sequence), 3)]
+        codons.insert(0, self.start_codon)
+        
+        # Filter out stop codons
+        return [codon for codon in codons if codon not in self.stop_codons]
+    
+    def translate_codons_to_amino_acids(self, codons: List[str]) -> List[str]:
+        """
+        Translate codons to amino acids.
+        
+        Args:
+            codons (List[str]): List of codons
+            
+        Returns:
+            List[str]: List of amino acids
+        """
+        amino_acids = [RNA_CODON_TABLE.get(codon, "Unknown") for codon in codons]
+        
+        # Filter out unknown and stop codons
+        return [aa for aa in amino_acids if aa not in {"Unknown", "STOP"}]
+    
+    def generate_random_sequence(self, length: int) -> str:
+        """
+        Generate a random DNA sequence of specified length.
+        
+        Args:
+            length (int): Length of sequence to generate
+            
+        Returns:
+            str: Random DNA sequence
+        """
+        return ''.join(random.choice('ACGT') for _ in range(length))
 
 
-def validate_custom_sequence():
+class ReportGenerator:
     """
-    Prompts the user for a custom DNA sequence and validates the input according to the given criteria.
-
-    :return: Valid DNA and RNA sequences.
+    A class to handle report generation and file operations.
     """
-    base_transcription = {'A': 'U', 'C': 'G', 'G': 'C', 'T': 'A'}  # Mapping of DNA to RNA bases with a dictionary.
-    # This makes it easy to access a value from another, e.g. accessing U from A.
-    while True:
-        user_input = input(
-            "Enter your custom DNA sequence (A, C, G, T). Length must be 9-30 and divisible by 3: ").upper()
-            # Upper() is used so that we do not run into issues in matching lowercase strings with uppercase.
-            # Hence, everything is converted to uppercase.
-        if 9 <= len(user_input) <= 30 and len(user_input) % 3 == 0:
-            if all(base in "ACGT" for base in user_input):
-                # The all() function takes in one parameter, an iterable, and returns a boolean value (True or False).
-                # E.g. in this case, the function iterates over user_input.
-                # The function checks if user_input is only made up of a sequence of the letters "A" "G" "C" "T".
-                # If the value comes back as "True", the if statement will progress to return.
-                # If the value comes back as "False", the loop will continue.
-                rna_sequence = "".join(base_transcription[base] for base in user_input)
-                # Transcripts to RNA with the dictionary defined in the function.
-                # Uses a list comprehension and accesses values in the dictionary together in order to create a transcripted list for use.
-                # [base] will access the key in base_transcription for a certain base, and add that to the list through the comprehension.
-                return user_input, rna_sequence  # Returns both DNA and RNA in a tuple.
-        print("Invalid input. Please follow the criteria.") # Line for error handling.
+    
+    def __init__(self, filename: str):
+        self.filename = filename
+        self.filepath = Path(f"{filename}.txt")
+    
+    def initialize_report(self) -> None:
+        """
+        Create and initialize a new report file with header.
+        """
+        with open(self.filepath, 'w', encoding='utf-8') as file:
+            file.write("=" * 50 + "\n")
+            file.write("DNA TO PROTEIN TRANSLATION REPORT\n")
+            file.write("=" * 50 + "\n\n")
+            file.write(f"Generated on: {date.today()}\n")
+            file.write(f"Tool version: 2.0\n\n")
+            file.write("-" * 50 + "\n\n")
+    
+    def write_section(self, title: str, content: str) -> None:
+        """
+        Write a section to the report file.
+        
+        Args:
+            title (str): Section title
+            content (str): Section content
+        """
+        with open(self.filepath, 'a', encoding='utf-8') as file:
+            file.write(f"{title.upper()}:\n")
+            file.write(f"{content}\n\n")
+    
+    def write_final_notes(self) -> None:
+        """
+        Add final notes and disclaimer to the report.
+        """
+        with open(self.filepath, 'a', encoding='utf-8') as file:
+            file.write("-" * 50 + "\n")
+            file.write("IMPORTANT NOTES:\n")
+            file.write("• This is an educational tool for learning purposes\n")
+            file.write("• Results are simplified and not suitable for real research\n")
+            file.write("• Does not account for reading frames or regulatory sequences\n\n")
+            file.write("-" * 50 + "\n")
+            file.write("Original concept by: Utsav Choudhury (2025)\n")
+            file.write("Enhanced by: Sukarth Acharya (2025)\n")
+            file.write("Project: LCOM.e\n")
 
 
-def get_sequence_input():
+class UserInterface:
     """
-    Prompts the user to choose between entering a custom sequence or generating a random sequence.
-
-    :return: Returns either custom DNA and RNA sequences or the string "RANDOM" to indicate random sequence generation.
+    A class to handle user interaction and input validation.
     """
-    while True:
-        choice = input("Enter 'CUSTOM' for a custom sequence or 'RANDOM' for a random sequence: ").upper()
-        # Upper() is used in order to handle uppercase/lowercase input issues. Everything is made uppercase for simplicity.
-        if choice == "CUSTOM":
-            return validate_custom_sequence()  # If CUSTOM is chosen, validates the input.
-        elif choice == "RANDOM":
-            return "RANDOM"  # If RANDOM is chosen, returns the string "RANDOM".
-        else:
-            print("Invalid choice. Please enter 'CUSTOM' or 'RANDOM'.")
-
-
-def generate_random_sequence():
-    """
-    The function accepts user input regarding the length of a random sequence.
-
-    :return: Returns the random DNA chain and its corresponding RNA chain.
-    """
-    base_transcription = {'A': 'U', 'C': 'G', 'G': 'C', 'T': 'A'}  # mapping DNA to RNA with dictionary
-    # This makes it easy to access a value from another, e,g accessing U from A.
-    while True:
-        try:  # Tries some operation. This is important, as users may decide to input strings instead of numbers.
-            sequence_length = int(input("Enter a length (9-30, divisible by 3) for the random sequence: "))
-            # Converts the string to an integer. If the string is made up of text, it will throw a ValueError.
-            # We deliberately try to trigger a ValueError with int() so that we can deal with it in the ValueError block.
-            # A ValueError is triggered when a there is improper conversion of classes, e.g. we try to convert a string an integer.
-            if 9 <= sequence_length <= 30 and sequence_length % 3 == 0: # Conditions
-                break
+    
+    def __init__(self, dna_processor: DNAProcessor):
+        self.dna_processor = dna_processor
+    
+    def get_filename(self) -> str:
+        """
+        Get filename for the report from user.
+        
+        Returns:
+            str: Filename for the report
+        """
+        while True:
+            filename = input("\nEnter filename for your report (no extension needed): ").strip()
+            if filename:
+                if Path(f"{filename}.txt").exists():
+                    overwrite = input(f"File '{filename}.txt' already exists. Overwrite? (y/n): ")
+                    if overwrite.lower().startswith('y'):
+                        return filename
+                else:
+                    return filename
+            print("Please enter a valid filename.")
+    
+    def get_sequence_choice(self) -> str:
+        """
+        Get user choice for sequence input method.
+        
+        Returns:
+            str: User choice ('CUSTOM' or 'RANDOM')
+        """
+        print("\nSequence Input Options:")
+        print("1. CUSTOM - Enter your own DNA sequence")
+        print("2. RANDOM - Generate a random DNA sequence")
+        
+        while True:
+            choice = input("\nEnter your choice (CUSTOM/RANDOM or 1/2): ").strip().upper()
+            if choice in ['CUSTOM', '1']:
+                return 'CUSTOM'
+            elif choice in ['RANDOM', '2']:
+                return 'RANDOM'
             else:
-                print("Length must be between 9-30 and divisible by 3.")
-        except ValueError:
-            # Triggered in the case of a ValueError e.g. "Hello" was inputted instead of "9".
-            # "Hello" can obviously not be converted to an integer.
-            # Important as we can address the error without it crashing the program.
-            print("Invalid input. Please enter a valid number.")
-    dna_sequence = "".join(random.choice("ACGT") for _ in range(sequence_length))  # Forms the DNA sequence.
-    # random.choice() is randomly choosing between characters in the "ACGT" expression.
-    # It does this 'n' times, where 'n' is the length of the sequence.
-    rna_sequence = "".join(base_transcription[base] for base in dna_sequence)  # Transcribes to RNA.
-    # Transcripts to RNA with the dictionary defined in the function.
-    # Uses a list comprehension and accesses values in the dictionary together in order to create a transcripted list for use.
-    # [base] will access the key in base_transcription for a certain base, and add that to the list through the comprehension.
-    return dna_sequence, rna_sequence  # Returns both values as a tuple.
+                print("Invalid choice. Please enter 'CUSTOM', 'RANDOM', '1', or '2'.")
+    
+    def get_custom_sequence(self) -> str:
+        """
+        Get and validate custom DNA sequence from user.
+        
+        Returns:
+            str: Valid DNA sequence
+        """
+        print("\nCustom DNA Sequence Requirements:")
+        print("• Length: 9-30 nucleotides")
+        print("• Must be divisible by 3")
+        print("• Only use A, C, G, T characters")
+        
+        while True:
+            sequence = input("\nEnter your DNA sequence: ").strip().upper()
+            
+            if self.dna_processor.validate_dna_sequence(sequence):
+                return sequence
+            else:
+                print("❌ Invalid sequence. Please check the requirements and try again.")
+                
+                # Provide specific feedback
+                if len(sequence) < 9 or len(sequence) > 30:
+                    print(f"   Length is {len(sequence)}, must be between 9-30.")
+                elif len(sequence) % 3 != 0:
+                    print(f"   Length {len(sequence)} is not divisible by 3.")
+                elif not all(base in 'ACGT' for base in sequence):
+                    invalid_chars = set(sequence) - set('ACGT')
+                    print(f"   Invalid characters found: {', '.join(invalid_chars)}")
+    
+    def get_random_sequence_length(self) -> int:
+        """
+        Get length for random sequence from user.
+        
+        Returns:
+            int: Valid sequence length
+        """
+        print("\nRandom Sequence Length:")
+        print("• Must be between 9-30")
+        print("• Must be divisible by 3")
+        print("• Available options: 9, 12, 15, 18, 21, 24, 27, 30")
+        
+        while True:
+            try:
+                length = int(input("\nEnter sequence length: "))
+                if 9 <= length <= 30 and length % 3 == 0:
+                    return length
+                else:
+                    print("❌ Length must be between 9-30 and divisible by 3.")
+            except ValueError:
+                print("❌ Please enter a valid number.")
 
 
-def convert_to_codons(sequence):
+def main() -> None:
     """
-    Takes in an RNA sequence, and breaks it up into codons (groups of 3 e.g. "AUG"), putting them into a list.
-    Furthermore, modifies the list, deleting "STOP" codons, which do not have a corresponding amino acid.
-    A "START" codon is also added.
-
-    :param: sequence (str): RNA sequence: a string of the letters "A" "C" "G" "U".
-    :return: Returns a processed list of codons.
+    Main function to run the DNA to Protein translation tool.
     """
-    codon_list = [sequence[i:i + 3] for i in range(0, len(sequence), 3)]  # Split the sequence into groups of 3.
-    codon_list.insert(0, "AUG")  # Add the start codon "AUG" at the beginning.
-    codon_list_processed = [codon for codon in codon_list if codon not in {"UAA", "UAG", "UGA"}] # Remove stop codons.
-    # This is accurate, as in biology, stop codons are removed, and sequences typically start with AUG.
-    return codon_list_processed
+    print("🧬 DNA to Protein Translation Tool")
+    print("=" * 40)
+    print("Welcome! This tool converts DNA sequences to protein chains.")
+    
+    try:
+        # Initialize components
+        dna_processor = DNAProcessor()
+        ui = UserInterface(dna_processor)
+        
+        # Get user inputs
+        filename = ui.get_filename()
+        report_generator = ReportGenerator(filename)
+        
+        choice = ui.get_sequence_choice()
+        
+        if choice == 'CUSTOM':
+            dna_sequence = ui.get_custom_sequence()
+            sequence_source = "Custom input"
+        else:
+            length = ui.get_random_sequence_length()
+            dna_sequence = dna_processor.generate_random_sequence(length)
+            sequence_source = f"Randomly generated (length: {length})"
+        
+        # Process the sequence
+        print("\n🔄 Processing sequence...")
+        
+        # Transcription: DNA to RNA
+        rna_sequence = dna_processor.transcribe_dna_to_rna(dna_sequence)
+        
+        # Convert to codons
+        codons = dna_processor.convert_to_codons(rna_sequence)
+        
+        # Translation: codons to amino acids
+        amino_acids = dna_processor.translate_codons_to_amino_acids(codons)
+        
+        # Create final protein chain
+        protein_chain = '-'.join(amino_acids)
+        
+        # Generate report
+        print("\n📝 Generating report...")
+        report_generator.initialize_report()
+        report_generator.write_section("Sequence Source", sequence_source)
+        report_generator.write_section("Original DNA Sequence", dna_sequence)
+        report_generator.write_section("Transcribed RNA Sequence", rna_sequence)
+        report_generator.write_section("Codons (with start codon)", str(codons))
+        report_generator.write_section("Amino Acids", str(amino_acids))
+        report_generator.write_section("Final Protein Chain", protein_chain)
+        report_generator.write_final_notes()
+        
+        # Display results
+        print("\n✅ Process completed successfully!")
+        print(f"\n📊 Results Summary:")
+        print(f"   DNA Sequence: {dna_sequence}")
+        print(f"   RNA Sequence: {rna_sequence}")
+        print(f"   Protein Chain: {protein_chain}")
+        print(f"   Report saved as: {filename}.txt")
+        
+    except KeyboardInterrupt:
+        print("\n\n⚠️ Process interrupted by user.")
+        sys.exit(0)
+    except Exception as e:
+        print(f"\n❌ An error occurred: {e}")
+        sys.exit(1)
 
 
-def get_file_names():
-    """
-    Takes input regarding the names of the files in which to store data.
-    :return: The name of the file
-    """
-    # Prompts the user for report filename
-    while True:
-        # Asks the user for a filename for the report file.
-        # Ensures the input is not empty and warns about overwriting existing files.
-        text_file_name = input("Enter a filename for your report\n"
-                               "No file extension needed. However, please note that if a file "
-                               "with this name already exists, it will be overwritten: ")
-        if text_file_name != "":
-            break
-
-    return text_file_name
-
-
-def initialize_report(text_file_name):
-    """
-    Creates and initializes a new report file with a header and current date.
-
-    :param: text_file_name (str): Name of the text file to create the report in.
-    :return: None.
-
-    """
-    # Opens the report file in write mode.
-    # This creates a new file or overwrites an existing file with the specified name.
-    with open(f'{text_file_name}.txt', 'w') as file:
-        # Write the report header, including the current date.
-        file.write("REPORT\n\n")
-        file.write(f'DATE: {date.today()}\n\n')
-
-
-def process_user_input(text_file_name):
-    """
-    Processes user input for DNA/RNA sequence, either randomly generated or custom... :param: text_file_name (str): Name of the report file to write input details
-
-    :return: A tuple containing the original sequence and RNA sequence
-    """
-    # Gets the user's choice for DNA sequence input or requests a random sequence.
-    user_choice = get_sequence_input()
-    if user_choice == "RANDOM":
-        # Generates a random RNA sequence if the user opts for RANDOM.
-        # Also uses user input for the length of the random sequence.
-        input_sequence = generate_random_sequence()
-        # Writes the randomly generated sequence to the report.
-        write_to_report(f'BASE ARRANGEMENT: {input_sequence[0]}\n\n', text_file_name)
-    else:
-        # If the user provides their own valid sequence, uses it as is.
-        input_sequence = user_choice
-        # Writes the user-provided sequence to the report.
-        write_to_report(f'Your DNA sequence choice was: {input_sequence[0]}\n\n', text_file_name)
-    return input_sequence
-
-
-def process_rna_sequence(input_sequence, text_file_name):
-    """
-    Processes the RNA sequence by converting it to codons and writing to report.
-
-    :param: input_sequence (tuple): Tuple containing original and RNA sequences
-    :param: text_file_name (str): Name of the report file to write sequence details
-
-    returns: List of codons derived from the RNA sequence
-    """
-    # Converts the RNA sequence into codons (triplets of bases).
-    codons = convert_to_codons(input_sequence[1])
-    # Writes the RNA sequence and its codons to the report.
-    write_to_report(f'RNA sequence: {input_sequence[1]}\n\n', text_file_name)
-    write_to_report(f'Codons: {codons}\n\n', text_file_name)
-    return codons
-
-
-def translate_and_process_codons(codons, text_file_name):
-    """
-    Translates codons to amino acids and filters out unknown or STOP codons.
-
-    :param: codons (list): List of codons to translate
-    :param: name of text file
-
-    :return: Processed list of amino acids
-    """
-    # Translates the codons into their corresponding amino acids using the RNA_CODON_TABLE.
-    translated_sequence = [RNA_CODON_TABLE.get(codon, "Unknown") for codon in codons]
-    # Unknown is used if no match is found.
-    # Filters out "Unknown" and "STOP" codons from the translated sequence for clarity.
-    # At this stage, "STOP" and "Uknown" are unlikely to exist; however, this filtering condition is just for safety.
-    # "STOP" would be for "STOP" codons.
-    translated_list_processed = [AA for AA in translated_sequence if AA not in {"Unknown", "STOP"}]
-    # Makes a list of the translated list; it adds animo acids with a list comprehenstion, provided that they are not "Unknown" or "STOP".
-    write_to_report(f'Amino Acids: {translated_list_processed}\n\n', text_file_name)
-    ## \n\n will provide two lines of spaces.
-    return translated_list_processed
-
-
-def create_and_write_final_chain(translated_list_processed, text_file_name):
-    """
-    Creates a final protein chain by joining amino acids and writes to report.
-
-    :param: translated_list_processed (list): List of amino acids
-    :param: text_file_name (str): Name of the report file
-
-    :return: Final protein chain with amino acids separated by hyphens
-    """
-    # Combines the amino acids into a final protein chain, separated by hyphens.
-    final_chain = "-".join(translated_list_processed)
-    # Writes the final protein chain to the report.
-    write_to_report(f'FINAL CHAIN: {final_chain}\n\n', text_file_name)
-    ## \n\n will provide two lines of spaces.
-    return final_chain
-
-
-def finalize_report(text_file_name):
-    """
-    Adds final notes and author information to the report.
-
-    :param: text_file_name (str): Name of the report file
-    """
-    # Adds a disclaimer to the report about the accuracy and context of the results.
-    write_to_report('NOTE: NOT A FULLY ACCURATE REPRESENTATION. NOT APPLICABLE TO REAL LIFE CONTEXTS.\n\n',
-                    text_file_name)
-    ## \n\n will provide two lines of spaces.
-    # Includes author information in the report for attribution.
-    write_to_report('UTSAV CHOUDHURY 2025\n\n', text_file_name)
-    ## \n\n will provide two lines of spaces.
-
-
-def print_completion_message(text_file_name):
-    """
-    Prints completion messages.
-
-    :param: text_file_name (str): Name of the text report file
-    """
-    print(f'Process completed. Check {text_file_name}.txt for information.')
-
-
-def main():
-    text_file_name = get_file_names() # Gets the file names and stores them in different variables.
-    initialize_report(text_file_name) # Adds some basic information into the report.
-    input_sequence = process_user_input(text_file_name) # Gets the RNA and DNA sequences and writes them into the report.
-    codons = process_rna_sequence(input_sequence, text_file_name) # Returns codons and writes them into text file.
-    translated_list_processed = translate_and_process_codons(codons, text_file_name)
-    # Returns the translated list from the codons and writes them into the text document.
-    create_and_write_final_chain(translated_list_processed, text_file_name)
-    # Creates the final chain and writes it into a text document.
-    finalize_report(text_file_name)
-    # Adds finishing touches to the report.
-    print_completion_message(text_file_name)
-    # Alerts user of completed process.
-
-if __name__ == "__main__":  # Ensures that the script’s main logic runs only when the script is executed directly.
-    main()  # Prevents main() from running automatically when the script is imported as a module in another script.
+if __name__ == "__main__":
+    main()
