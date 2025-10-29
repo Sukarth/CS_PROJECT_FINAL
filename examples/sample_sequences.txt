@@ -1,0 +1,51 @@
+# Sample DNA Sequences for Testing
+# Use these sequences to test the DNA to Protein Translation Tool
+
+## Valid DNA Sequences (9-30 nucleotides, divisible by 3)
+
+### Short sequences (9 nucleotides)
+ATGTTCGGA  # -> AUG UUC GGA -> Met-Phe-Gly
+ATCGATCGA  # -> AUC GAU CGA -> Ile-Asp-Arg
+GGCAAGTTC  # -> GGC AAG UUC -> Gly-Lys-Phe
+
+### Medium sequences (12 nucleotides)
+ATGTTCGGAAAG  # -> AUG UUC GGA AAG -> Met-Phe-Gly-Lys
+CCGGATATGGCC  # -> CCG GAU AUG GCC -> Pro-Asp-Met-Ala
+TTCGGCAAGGAT  # -> UUC GGC AAG GAU -> Phe-Gly-Lys-Asp
+
+### Long sequences (21 nucleotides)
+ATGTTCGGAAAGGATCCGTGG  # Complex protein sequence
+GCCATGTTCGGAAAGGATCCG  # Another complex sequence
+
+### Maximum length (30 nucleotides)
+ATGTTCGGAAAGGATCCGTGGCCGAAGTTC  # Full length test
+
+## Sequences with Stop Codons (for testing filtering)
+ATGTTCTAA  # Contains UAA stop codon
+ATGGGCTAG  # Contains UAG stop codon  
+ATGAAGTGA  # Contains UGA stop codon
+
+## Invalid Sequences (for negative testing)
+# ATGTTC     # Too short (6 nucleotides)
+# ATGTTCG    # Not divisible by 3 (7 nucleotides)
+# ATGTTCGGX  # Invalid character X
+# ATGTTCGGAATGTTCGGAATGTTCGGAATG  # Too long (33 nucleotides)
+
+## Biologically Interesting Sequences
+
+### Insulin B-chain start (human)
+# TTCGTGAACCAACACCTGTGCGGCTCACACCTGGTGGAAGCTCTC
+# This is longer than our tool allows, but first 30 nucleotides:
+TTCGTGAACCAACACCTGTGCGGCTCACAC  # First 30 bases of insulin B-chain
+
+### Hemoglobin alpha start
+# ATGGTGCTGTCTCCTGCCGACAAGACCAACGTCAAGGCCGCCTGG
+# First 30 nucleotides:
+ATGGTGCTGTCTCCTGCCGACAGACCAACG  # Start of hemoglobin alpha
+
+## Notes:
+- All sequences are written 5' to 3'
+- DNA sequences use A, T, G, C
+- Tool will transcribe to RNA (A->U, T->A, G->C, C->G)
+- Start codon AUG is automatically added
+- Stop codons are automatically filtered out
